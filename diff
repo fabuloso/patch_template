@@ -1,0 +1,27 @@
+diff --git a/lib/prova_web/router.ex b/lib/prova_web/router.ex
+index 4ce11ab..b55e907 100644
+--- a/lib/prova_web/router.ex
++++ b/lib/prova_web/router.ex
+@@ -17,6 +17,8 @@ defmodule ProvaWeb.Router do
+   scope "/", ProvaWeb do
+     pipe_through :browser
+ 
++    forward "/fottesega", Absinthe.Plug, schema: ProvaWeb.Schema
++
+     get "/", PageController, :index
+   end
+ 
+diff --git a/mix.exs b/mix.exs
+index 1012dbf..0335eab 100644
+--- a/mix.exs
++++ b/mix.exs
+@@ -49,7 +49,8 @@ defmodule Prova.MixProject do
+       {:gettext, "~> 0.18"},
+       {:jason, "~> 1.2"},
+       {:plug_cowboy, "~> 2.5"},
+-    ]
++      {:prima_opentelemetry_ex, "~> 1.0.0-rc.3"}
++    
+   end
+ 
+   # Aliases are shortcuts or tasks specific to the current project.
