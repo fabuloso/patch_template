@@ -1,7 +1,6 @@
 const { createTemplateAction } = require('@backstage/plugin-scaffolder-backend');
-const { join } = require('path');
 
-function patch_template(containerRunner, reader, integrations) {
+function patch_template(containerRunner) {
   return createTemplateAction({
     id: 'patch:template',
     schema: {
@@ -10,17 +9,16 @@ function patch_template(containerRunner, reader, integrations) {
   });
 
   async function patch(ctx) {
-    let workdir = ctx.workspacePath;
-    let diffPath = join(ctx.workspacePath, 'diff');
+    const workdir = ctx.workspacePath;
 
     await containerRunner.runContainer({
       imageName: 'busybox',
       command: 'sh',
       args: [
         '-c',
-        'cd workdir && patch -p1 < /tmp/diff.patch'
+        'cd workdir && patch -p1 < diff && rm diff'
       ],
-      mountDirs: { [workdir]: '/workdir', [diffPath]: '/tmp/diff.patch' },
+      mountDirs: { [workdir]: '/workdir' },
       envVars: { HOME: '/tmp' },
       logStream: ctx.logStream,
     });
