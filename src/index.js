@@ -1,44 +1,30 @@
-const { createTemplateAction , fetchContents} = require('@backstage/plugin-scaffolder-backend');
-const { resolveSafeChildPath } = require('@backstage/backend-common');
+const { createTemplateAction } = require('@backstage/plugin-scaffolder-backend');
+const { join } = require('path');
 
 function patch_template(containerRunner, reader, integrations) {
-    return createTemplateAction({
-        id: 'patch:template',
-        schema: {
+  return createTemplateAction({
+    id: 'patch:template',
+    schema: {
+    },
+    async handler(ctx) { await patch(ctx) }
+  });
 
-        },
-        async handler(ctx){ await patch(ctx) }
+  async function patch(ctx) {
+    let workdir = ctx.workspacePath;
+    let diffPath = join(ctx.workspacePath, 'diff');
+
+    await containerRunner.runContainer({
+      imageName: 'busybox',
+      command: 'sh',
+      args: [
+        '-c',
+        'cd workdir && patch -p1 < /tmp/diff.patch'
+      ],
+      mountDirs: { [workdir]: '/workdir', [diffPath]: '/tmp/diff.patch' },
+      envVars: { HOME: '/tmp' },
+      logStream: ctx.logStream,
     });
-
-    async function patch(ctx) {
-       let workdir = ctx.workspacePath; 
-       let diffUrl = './diff';
-       const diffPath = resolveSafeChildPath(workdir, 'diff.patch');
-
-       await fetchContents({
-        reader,
-        integrations,
-        baseUrl: ctx.baseUrl,
-        fetchUrl: diffUrl,
-        outputPath: diffPath,
-      });
-
-       await containerRunner.runContainer({
-            imageName: 'busybox',
-            command: 'sh',
-            args: [
-                '-c',
-                ` cd workdir
-                  patch -p1 < /tmp/diff.patch
-                ` 
-            ],
-            mountDirs: { [workdir]: '/workdir', [diffPath]: '/tmp/diff.patch' },
-            // The following is needed to make bash start in this folder, in order to avoid errors
-            // when trying to create files in /
-            envVars: { HOME: '/tmp' },
-            logStream: ctx.logStream,
-        }); 
-    }    
+  }
 
 }
 
