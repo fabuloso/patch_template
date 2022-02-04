@@ -1,22 +1,26 @@
-const { createTemplateAction } = require('@backstage/plugin-scaffolder-backend');
+const {
+  createTemplateAction,
+} = require("@backstage/plugin-scaffolder-backend");
 
 function patchTemplate(containerRunner) {
   return createTemplateAction({
-    id: 'patch:template',
+    id: "patch:template",
     schema: {
       input: {
-        type: 'object',
+        type: "object",
         properties: {
           patchFile: {
-            type: 'string',
-            title: 'Patch File',
-            description: 'Patch File',
-            default: 'patch.diff'
+            type: "string",
+            title: "Patch File",
+            description: "Patch File",
+            default: "patch.diff",
           },
-        }
-      }
+        },
+      },
     },
-    async handler(ctx) { await patch(ctx) }
+    async handler(ctx) {
+      await patch(ctx);
+    },
   });
 
   async function patch(ctx) {
@@ -24,18 +28,17 @@ function patchTemplate(containerRunner) {
     const patchFile = ctx.input.patchFile;
 
     await containerRunner.runContainer({
-      imageName: 'busybox',
-      command: 'sh',
+      imageName: "busybox",
+      command: "sh",
       args: [
-        '-c',
-        `cd workdir && patch -p1 < ${patchFile} && rm ${patchFile}`
+        "-c",
+        `cd workdir && patch -p1 --remove-empty-files < ${patchFile} && rm ${patchFile}`,
       ],
-      mountDirs: { [workdir]: '/workdir' },
-      envVars: { HOME: '/tmp' },
+      mountDirs: { [workdir]: "/workdir" },
+      envVars: { HOME: "/tmp" },
       logStream: ctx.logStream,
     });
   }
-
 }
 
-module.exports = { patchTemplate }
+module.exports = { patchTemplate };
